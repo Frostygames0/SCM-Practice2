@@ -1,0 +1,59 @@
+#include "config.hpp"
+
+#include <algorithm>
+#include <expected>
+#include <filesystem>
+#include <format>
+#include <ostream>
+#include <string>
+#include <system_error>
+
+namespace PackageMan
+{
+namespace
+{
+bool isUpperLatin(const std::string& s)
+{
+    return !s.empty() && std::ranges::all_of(s, [](char c) { return c >= 'A' && c <= 'Z'; });
+}
+} // namespace
+
+std::ostream& operator<<(std::ostream& out, const Config& cfg)
+{
+    return out << "[Config]\n"
+               << "package: " << cfg.packageName << '\n'
+               << "repo: " << cfg.repoPath << '\n'
+               << "test_mode: " << (cfg.testMode ? "true" : "false") << '\n'
+               << "output: " << cfg.outputImgName << ImgExt << '\n';
+}
+
+std::expected<void, std::string> validateConfig(const Config& cfg)
+{
+    if (cfg.packageName.empty())
+    {
+        return std::unexpected("Package Name must not be empty!");
+    }
+
+    if (cfg.testMode)
+    {
+        std::error_code ec;
+        if (!std::filesystem::is_regular_file(cfg.repoPath, ec))
+        {
+            return std::unexpected(std::format("test repo file not found: {}", cfg.repoPath));
+        }
+        if (!isUpperLatin(cfg.packageName))
+        {
+            return std::unexpected("in test mode package name must be upper-case latin letters");
+        }
+    }
+    else
+    {
+        if (!cfg.repoPath.starts_with("http://") && !cfg.repoPath.starts_with("https://"))
+        {
+            return std::unexpected("Repo must be a valid HTTP link!");
+        }
+    }
+
+    return {};
+}
+} // namespace PackageMan

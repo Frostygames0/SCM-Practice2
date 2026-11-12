@@ -1,0 +1,43 @@
+---
+BasedOnStyle: Microsoft
+# Breaks & Braces
+ColumnLimit: 120
+InsertBraces: true
+AccessModifierOffset: -4
+PenaltyBreakAssignment: 1000
+PenaltyBreakScopeResolution: 1000
+PenaltyBreakFirstLessLess: 100000
+BreakTemplateDeclarations: Yes
+SeparateDefinitionBlocks: Always
+PackConstructorInitializers: CurrentLine
+# Single Line Short
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: Inline
+# Bin Packing
+BinPackArguments: false
+BinPackParameters: OnePerLine
+# Indentation
+IndentCaseLabels: true
+ContinuationIndentWidth: 4
+# Alignment
+PointerAlignment: Left
+QualifierAlignment: Left
+AlignArrayOfStructures: Left
+AlignEscapedNewlines: DontAlign
+AlignAfterOpenBracket: true
+AlignOperands: Align
+# Literal separator
+IntegerLiteralSeparator:
+  Decimal: 3
+  DecimalMinDigits: 5
+# Include sorting (1. Main header, 2. C/C++ std & OS, 3. Qt, 4. Project)
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<(Q|Qt)[A-Za-z0-9_./]*>'
+    Priority: 2
+    CaseSensitive: true
+  - Regex: '^<.*>'
+    Priority: 1
+  - Regex: '^".*"'
+    Priority: 3
