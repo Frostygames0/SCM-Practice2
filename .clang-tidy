@@ -62,7 +62,6 @@ CheckOptions:
   - { key: readability-identifier-naming.GlobalConstantCase,                                                          value: CamelCase }
   - { key: cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage,                                   value: true }
   - { key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic,               value: true }
-  - { key: misc-include-cleaner.IgnoreHeaders,                                                                        value: 'Q.*;qt.*/.*;moc_.*;ui_.*' }
 
 WarningsAsErrors:   ''
 FormatStyle:        file

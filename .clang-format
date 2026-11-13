@@ -30,14 +30,3 @@ AlignOperands: Align
 IntegerLiteralSeparator:
   Decimal: 3
   DecimalMinDigits: 5
-# Include sorting (1. Main header, 2. C/C++ std & OS, 3. Qt, 4. Project)
-SortIncludes: CaseSensitive
-IncludeBlocks: Regroup
-IncludeCategories:
-  - Regex: '^<(Q|Qt)[A-Za-z0-9_./]*>'
-    Priority: 2
-    CaseSensitive: true
-  - Regex: '^<.*>'
-    Priority: 1
-  - Regex: '^".*"'
-    Priority: 3
