@@ -24,7 +24,7 @@ std::ostream& operator<<(std::ostream& out, const Config& cfg)
                << "package: " << cfg.packageName << '\n'
                << "repo: " << cfg.repoPath << '\n'
                << "test_mode: " << (cfg.testMode ? "true" : "false") << '\n'
-               << "output: " << cfg.outputImgName << ImgExt << '\n';
+               << "output: " << cfg.outputImgName << '\n';
 }
 
 std::expected<void, std::string> validateConfig(const Config& cfg)
