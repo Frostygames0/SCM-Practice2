@@ -3,19 +3,16 @@
 #include <expected>
 #include <ostream>
 #include <string>
-#include <string_view>
 
 namespace PackageMan
 {
-
-inline constexpr std::string_view ImgExt = ".png";
 
 struct Config
 {
     std::string packageName;
     std::string repoPath;
-    bool testMode;
-    std::string outputImgName;
+    bool testMode = false;
+    std::string outputImgName = "output.png";
 
     friend std::ostream& operator<<(std::ostream& out, const Config& cfg);
 };

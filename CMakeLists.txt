@@ -6,29 +6,18 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CPR_CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
-set(CPR_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-
-include(FetchContent)
-FetchContent_Declare(
-    cpr
-    GIT_REPOSITORY https://github.com/libcpr/cpr.git
-    GIT_TAG 1.15.1
-    SYSTEM
-)
-FetchContent_MakeAvailable(cpr)
+find_package(CURL REQUIRED)
 
 add_executable(PackageMan 
     src/main.cpp
     src/config.hpp src/config.cpp
+    src/string_utils.hpp
 )
 
 target_include_directories(PackageMan PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_include_directories(PackageMan SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
-target_link_libraries(PackageMan PRIVATE cpr::cpr)
-
-target_precompile_headers(PackageMan PRIVATE <CLI11/CLI11.hpp>)
+target_include_directories(PackageMan PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+target_link_libraries(PackageMan PRIVATE CURL::libcurl)
 
 target_compile_options(PackageMan PRIVATE
     # General

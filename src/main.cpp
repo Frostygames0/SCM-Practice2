@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include <CLI11/CLI11.hpp>
-
 #include "config.hpp"
+
+#include <CLI11/CLI11.hpp>
 
 int main(int argc, char** argv)
 {
@@ -11,8 +11,8 @@ int main(int argc, char** argv)
 
     app.add_option("-p,--package", cfg.packageName, "Package name")->required();
     app.add_option("-r,--repo", cfg.repoPath, "Repository URL or test file path")->required();
-    app.add_flag("-t,--test", cfg.testMode, "Use test repository file")->default_val(false);
-    app.add_option("-o,--output", cfg.outputImgName, "Output PNG file name")->default_val("output");
+    app.add_flag("-t,--test", cfg.testMode, "Use test repository file");
+    app.add_option("-o,--output", cfg.outputImgName, "Output PNG file name");
     CLI11_PARSE(app, argc, argv);
 
     auto res = PackageMan::validateConfig(cfg);
