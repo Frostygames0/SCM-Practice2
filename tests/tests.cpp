@@ -12,13 +12,13 @@ namespace
 using namespace PackageMan;
 using Names = std::vector<std::string>;
 
-int g_failed = 0;
+int failed = 0;
 
 void check(bool ok, const std::string& what)
 {
     if (!ok)
     {
-        ++g_failed;
+        ++failed;
         std::cerr << "  FAIL: " << what << '\n';
     }
 }
@@ -147,11 +147,11 @@ int main()
 
     for (const auto& [name, test] : tests)
     {
-        int before = g_failed;
+        int before = failed;
         test();
-        std::cout << (g_failed == before ? "[ OK ] " : "[FAIL] ") << name << '\n';
+        std::cout << (failed == before ? "[ OK ] " : "[FAIL] ") << name << '\n';
     }
 
-    std::cout << (g_failed == 0 ? "All tests passed\n" : "Some tests failed\n");
-    return g_failed == 0 ? 0 : 1;
+    std::cout << (failed == 0 ? "All tests passed\n" : "Some tests failed\n");
+    return failed == 0 ? 0 : 1;
 }

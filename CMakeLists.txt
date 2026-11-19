@@ -12,8 +12,8 @@ find_package(LibArchive REQUIRED)
 include(FetchContent)
 set(REPROC++ ON CACHE BOOL "" FORCE)
 FetchContent_Declare(reproc
-    GIT_REPOSITORY https://github.com/DaanDeMeyer/reproc.git
-    GIT_TAG v14.2.5
+    GIT_REPOSITORY https://github.com/daandemeyer/reproc.git
+    GIT_TAG 14.2.8
     SYSTEM
 )
 FetchContent_MakeAvailable(reproc)
