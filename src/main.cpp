@@ -30,7 +30,6 @@ int main(int argc, char** argv)
     }
 
     auto repo = PackageMan::makeRepository(cfg);
-    curl_global_cleanup();
     
     if (!repo)
     {
@@ -49,5 +48,6 @@ int main(int argc, char** argv)
 
     std::cout << "Saved: " << cfg.outputImgName << '\n';
 
+    curl_global_cleanup();
     return 0;
 }
