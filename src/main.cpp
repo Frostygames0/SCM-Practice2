@@ -31,6 +31,7 @@ int main(int argc, char** argv)
 
     auto repo = PackageMan::makeRepository(cfg);
     curl_global_cleanup();
+    
     if (!repo)
     {
         std::cerr << "Error: " << repo.error() << '\n';
@@ -40,13 +41,12 @@ int main(int argc, char** argv)
     auto graph = PackageMan::buildGraph(**repo, cfg.packageName);
 
     auto mermaid = PackageMan::toMermaid(graph);
-    std::cout << mermaid << '\n';
-
     if (auto rendered = PackageMan::renderMermaid(mermaid, cfg.outputImgName); !rendered)
     {
         std::cerr << "Error: " << rendered.error() << '\n';
         return 1;
     }
+
     std::cout << "Saved: " << cfg.outputImgName << '\n';
 
     return 0;
