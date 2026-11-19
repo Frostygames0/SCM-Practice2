@@ -7,7 +7,7 @@
 #include <string_view>
 #include <vector>
 
-namespace EmulatorMirea::Core::StringUtils
+namespace PackageMan::StringUtils
 {
 
 template <std::ranges::range R>
@@ -39,18 +39,18 @@ template <std::ranges::range R>
     return result;
 }
 
-[[nodiscard]] constexpr std::vector<std::string_view> split(std::string_view str, char delim)
+template <std::invocable<std::string_view> F>
+constexpr void splitLazy(std::string_view str, char delim, F&& func, bool skipEmpty = true) // NOLINT
 {
-    std::vector<std::string_view> result;
     std::size_t start{};
     std::size_t end = str.find(delim);
 
     while (end != std::string_view::npos)
     {
         auto part = str.substr(start, end - start);
-        if (!part.empty())
+        if (!skipEmpty || !part.empty())
         {
-            result.push_back(part);
+            func(part);
         }
 
         start = end + 1;
@@ -58,26 +58,37 @@ template <std::ranges::range R>
     }
 
     auto lastPart = str.substr(start);
-    if (!lastPart.empty())
+    if (!skipEmpty || !lastPart.empty())
     {
-        result.push_back(str.substr(start));
+        func(str.substr(start));
     }
+}
+
+template <std::constructible_from<std::string_view> T = std::string_view>
+[[nodiscard]] constexpr std::vector<T> split(std::string_view str,
+                                             char delim,
+                                             bool skipEmpty = true)
+{
+    std::vector<T> result;
+    splitLazy(str, delim, [&](std::string_view part) { result.emplace_back(part); }, skipEmpty);
 
     return result;
 }
 
-constexpr std::string_view trim(std::string_view sv)
+template <typename T = std::string_view>
+    requires std::constructible_from<T, std::string_view> && std::default_initializable<T>
+constexpr T trim(std::string_view sv)
 {
     constexpr const char* spaces = " \t\n\r\f\v";
 
     std::size_t start = sv.find_first_not_of(spaces);
     if (start == std::string_view::npos)
     {
-        return "";
+        return T{};
     }
 
     std::size_t end = sv.find_last_not_of(spaces);
 
-    return sv.substr(start, end - start + 1);
+    return T(sv.substr(start, end - start + 1));
 }
-}; // namespace EmulatorMirea::Core::StringUtils
+}; // namespace PackageMan::StringUtils

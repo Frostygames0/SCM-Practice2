@@ -1,27 +1,66 @@
 #include <iostream>
 
-#include "config.hpp"
+#include <archive.h>
+#include <archive_entry.h>
+
+#include <curl/curl.h>
+#include <curl/easy.h>
 
 #include <CLI11/CLI11.hpp>
 
+#include "apkindex.hpp"
+#include "archive.hpp"
+#include "config.hpp"
+#include "filedownload.hpp"
+#include "utils/string.hpp"
+
 int main(int argc, char** argv)
 {
-    CLI::App app{"PackageMan: Alpine (apk) dependency graph visualizer"};
-    PackageMan::Config cfg;
-
-    app.add_option("-p,--package", cfg.packageName, "Package name")->required();
-    app.add_option("-r,--repo", cfg.repoPath, "Repository URL or test file path")->required();
-    app.add_flag("-t,--test", cfg.testMode, "Use test repository file");
-    app.add_option("-o,--output", cfg.outputImgName, "Output PNG file name");
-    CLI11_PARSE(app, argc, argv);
-
-    auto res = PackageMan::validateConfig(cfg);
+    auto res = PackageMan::parseFromCommandLine(argc, argv);
     if (!res)
     {
-        std::cerr << "Error: " << res.error() << '\n';
+        return res.error();
+    }
+
+    const PackageMan::Config cfg = *std::move(res);
+
+    if (auto valRes = PackageMan::validateConfig(cfg); !valRes)
+    {
+        std::cerr << "Error: " << valRes.error() << '\n';
         return 1;
     }
 
-    std::cout << cfg;
+    if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK)
+    {
+        std::cerr << "Failed to initialize curl!";
+        return 1;
+    }
+
+    if (cfg.testMode)
+    {
+        std::cerr << "Test mode is currently not supported!";
+        return 1;
+    }
+
+    auto downloadRes = PackageMan::Web::downloadFrom(cfg.repoPath);
+    if (!downloadRes)
+    {
+        std::cerr << downloadRes.error();
+        return 1;
+    }
+
+    auto unarchiveRes = PackageMan::Archive::readFromMemory(*downloadRes);
+    if (!unarchiveRes)
+    {
+        std::cerr << unarchiveRes.error();
+        return 1;
+    }
+
+    auto index = PackageMan::ApkIndex::parseFromString(*unarchiveRes);
+    if (const auto* ptr = index.get(cfg.packageName); ptr != nullptr)
+    {
+        std::cout << PackageMan::StringUtils::joinStrings(ptr->depends, " ") << '\n';
+    }
+
     return 0;
 }

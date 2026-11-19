@@ -7,17 +7,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(CURL REQUIRED)
+find_package(LibArchive REQUIRED)
 
 add_executable(PackageMan 
     src/main.cpp
-    src/config.hpp src/config.cpp
-    src/string_utils.hpp
+    src/config.hpp        src/config.cpp
+    src/utils/string.hpp
+    src/apkindex.hpp      src/apkindex.cpp
+    src/filedownload.hpp  src/filedownload.cpp
+    src/archive.hpp       src/archive.cpp
 )
 
 target_include_directories(PackageMan PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_include_directories(PackageMan PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
-target_link_libraries(PackageMan PRIVATE CURL::libcurl)
+target_link_libraries(PackageMan PRIVATE CURL::libcurl LibArchive::LibArchive)
 
 target_compile_options(PackageMan PRIVATE
     # General

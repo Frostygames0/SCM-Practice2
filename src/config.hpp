@@ -17,6 +17,8 @@ struct Config
     friend std::ostream& operator<<(std::ostream& out, const Config& cfg);
 };
 
+std::expected<Config, int> parseFromCommandLine(int argc, char** argv);
+
 std::expected<void, std::string> validateConfig(const Config& cfg);
 
 }; // namespace PackageMan
