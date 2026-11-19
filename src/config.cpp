@@ -1,5 +1,4 @@
 #include "config.hpp"
-#include "CLI11/CLI11.hpp"
 
 #include <algorithm>
 #include <expected>
@@ -8,6 +7,8 @@
 #include <ostream>
 #include <string>
 #include <system_error>
+
+#include "CLI11/CLI11.hpp"
 
 namespace PackageMan
 {

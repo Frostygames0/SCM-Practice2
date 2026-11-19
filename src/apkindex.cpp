@@ -1,8 +1,9 @@
 #include "apkindex.hpp"
 
-#include <ostream>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "utils/string.hpp"
@@ -11,6 +12,28 @@ namespace PackageMan
 {
 namespace
 {
+// "!foo" -> nullopt, "busybox>=1.36" -> "busybox", "so:libz.so.1=1.3" -> "so:libz.so.1"
+std::optional<std::string> normalizeToken(std::string_view tok)
+{
+    if (tok.empty() || tok.front() == '!')
+    {
+        return std::nullopt;
+    }
+    return std::string{tok.substr(0, tok.find_first_of("=<>~"))};
+}
+
+std::vector<std::string> parseList(std::string_view value)
+{
+    std::vector<std::string> out;
+    StringUtils::splitLazy(value, ' ', [&](std::string_view tok) {
+        if (auto name = normalizeToken(tok); name && !name->empty())
+        {
+            out.push_back(std::move(*name));
+        }
+    });
+    return out;
+}
+
 void applyField(ApkPackage& pkg, char key, std::string_view value)
 {
     switch (key)
@@ -21,70 +44,31 @@ void applyField(ApkPackage& pkg, char key, std::string_view value)
         case 'V':
             pkg.version = value;
             break;
-        case 'A':
-            pkg.arch = value;
-            break;
-        case 'T':
-            pkg.description = value;
-            break;
-        case 'U':
-            pkg.url = value;
-            break;
-        case 'L':
-            pkg.license = value;
-            break;
-        case 'o':
-            pkg.origin = value;
-            break;
-        case 'm':
-            pkg.maintainer = value;
-            break;
-        case 'C':
-            pkg.checksum = value;
-            break;
-        case 'S':
-            pkg.size = std::stoull(std::string(value));
-            break;
-        case 'I':
-            pkg.installedSize = std::stoull(std::string(value));
-            break;
-        case 't':
-            pkg.buildTime = std::stoull(std::string(value));
-            break;
         case 'D':
-            pkg.depends = StringUtils::split<std::string>(value, ' ');
+            pkg.depends = parseList(value);
             break;
         case 'p':
-            pkg.provides = StringUtils::split<std::string>(value, ' ');
-            break;
-        case 'i':
-            pkg.installIf = StringUtils::split<std::string>(value, ' ');
+            pkg.provides = parseList(value);
             break;
         default:
             break; // ignore unknown keys
     }
 }
+
+template <typename Map>
+const ApkPackage* findIn(const Map& map, const std::vector<ApkPackage>& pkgs, std::string_view name)
+{
+    if (auto it = map.find(std::string{name}); it != map.end())
+    {
+        return &pkgs[it->second];
+    }
+    return nullptr;
+}
 } // namespace
 
-std::ostream& operator<<(std::ostream& str, const ApkPackage& pkg)
+ApkIndex::ApkIndex(std::vector<ApkPackage> packages) : m_packages(std::move(packages))
 {
-    str << "Name:           " << pkg.name << '\n'
-        << "Version:        " << pkg.version << '\n'
-        << "Arch:           " << pkg.arch << '\n'
-        << "Description:    " << pkg.description << '\n'
-        << "URL:            " << pkg.url << '\n'
-        << "License:        " << pkg.license << '\n'
-        << "Origin:         " << pkg.origin << '\n'
-        << "Maintainer:     " << pkg.maintainer << '\n'
-        << "Checksum:       " << pkg.checksum << '\n'
-        << "Size:           " << pkg.size << '\n'
-        << "Installed size: " << pkg.installedSize << '\n'
-        << "Build time:     " << pkg.buildTime << '\n'
-        << "Depends:        " << StringUtils::joinStrings(pkg.depends, " ") << '\n'
-        << "Provides:       " << StringUtils::joinStrings(pkg.provides, " ") << '\n'
-        << "Install if:     " << StringUtils::joinStrings(pkg.installIf, " ") << '\n';
-
-    return str;
+    buildIndices();
 }
 
 ApkIndex ApkIndex::parseFromString(const std::string& str)
@@ -94,18 +78,22 @@ ApkIndex ApkIndex::parseFromString(const std::string& str)
     ApkPackage current;
     bool hasData = false;
 
+    auto flush = [&] {
+        if (hasData)
+        {
+            packages.push_back(std::move(current));
+            current = {};
+            hasData = false;
+        }
+    };
+
     StringUtils::splitLazy(
         str,
         '\n',
         [&](std::string_view line) {
             if (line.empty())
             {
-                if (hasData)
-                {
-                    packages.push_back(std::move(current));
-                    current = {};
-                    hasData = false;
-                }
+                flush();
                 return;
             }
             if (line.size() >= 2 && line[1] == ':')
@@ -116,25 +104,38 @@ ApkIndex ApkIndex::parseFromString(const std::string& str)
         },
         false);
 
-    if (hasData)
-    {
-        packages.push_back(std::move(current));
-    }
+    flush();
 
-    return ApkIndex{packages};
+    return ApkIndex{std::move(packages)};
 }
 
 const ApkPackage* ApkIndex::get(std::string_view name) const
 {
-    auto it = std::find_if(m_packages.begin(), m_packages.end(), [&](const ApkPackage& pkg) {
-        return pkg.name == name;
-    });
+    return findIn(m_byName, m_packages, name);
+}
 
-    if (it != m_packages.end())
+const ApkPackage* ApkIndex::resolve(std::string_view name) const
+{
+    if (const auto* pkg = get(name))
     {
-        return &*it;
+        return pkg;
     }
+    return findIn(m_byProvides, m_packages, name);
+}
 
-    return nullptr;
+void ApkIndex::buildIndices()
+{
+    m_byName.clear();
+    m_byProvides.clear();
+
+    for (std::size_t i = 0; i < m_packages.size(); ++i)
+    {
+        const auto& pkg = m_packages[i];
+        m_byName.emplace(pkg.name, i);
+        for (const auto& p : pkg.provides)
+        {
+            m_byProvides.emplace(p, i); // first provider wins
+        }
+    }
 }
 } // namespace PackageMan

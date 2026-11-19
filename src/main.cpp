@@ -1,18 +1,11 @@
 #include <iostream>
 
-#include <archive.h>
-#include <archive_entry.h>
-
 #include <curl/curl.h>
-#include <curl/easy.h>
 
-#include <CLI11/CLI11.hpp>
-
-#include "apkindex.hpp"
-#include "archive.hpp"
 #include "config.hpp"
-#include "filedownload.hpp"
-#include "utils/string.hpp"
+#include "graph.hpp"
+#include "render.hpp"
+#include "repository.hpp"
 
 int main(int argc, char** argv)
 {
@@ -32,35 +25,29 @@ int main(int argc, char** argv)
 
     if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK)
     {
-        std::cerr << "Failed to initialize curl!";
+        std::cerr << "Failed to initialize curl!\n";
         return 1;
     }
 
-    if (cfg.testMode)
+    auto repo = PackageMan::makeRepository(cfg);
+    curl_global_cleanup();
+    if (!repo)
     {
-        std::cerr << "Test mode is currently not supported!";
+        std::cerr << "Error: " << repo.error() << '\n';
         return 1;
     }
 
-    auto downloadRes = PackageMan::Web::downloadFrom(cfg.repoPath);
-    if (!downloadRes)
+    auto graph = PackageMan::buildGraph(**repo, cfg.packageName);
+
+    auto mermaid = PackageMan::toMermaid(graph);
+    std::cout << mermaid << '\n';
+
+    if (auto rendered = PackageMan::renderMermaid(mermaid, cfg.outputImgName); !rendered)
     {
-        std::cerr << downloadRes.error();
+        std::cerr << "Error: " << rendered.error() << '\n';
         return 1;
     }
-
-    auto unarchiveRes = PackageMan::Archive::readFromMemory(*downloadRes);
-    if (!unarchiveRes)
-    {
-        std::cerr << unarchiveRes.error();
-        return 1;
-    }
-
-    auto index = PackageMan::ApkIndex::parseFromString(*unarchiveRes);
-    if (const auto* ptr = index.get(cfg.packageName); ptr != nullptr)
-    {
-        std::cout << PackageMan::StringUtils::joinStrings(ptr->depends, " ") << '\n';
-    }
+    std::cout << "Saved: " << cfg.outputImgName << '\n';
 
     return 0;
 }

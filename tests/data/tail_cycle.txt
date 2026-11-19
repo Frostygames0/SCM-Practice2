@@ -1,0 +1,5 @@
+# A depends on a cycle B <-> C, D is a plain leaf
+A: B D
+B: C
+C: B
+D:
