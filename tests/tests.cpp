@@ -133,16 +133,16 @@ void loadErrors()
 int main()
 {
     const std::vector<std::pair<const char*, std::function<void()>>> tests{
-        {"diamond", diamond},
-        {"subgraph", subgraph},
-        {"cycle", cycle},
-        {"self loop", selfLoop},
-        {"tail cycle", tailCycle},
-        {"missing", missing},
+        {"diamond",      diamond    },
+        {"subgraph",     subgraph   },
+        {"cycle",        cycle      },
+        {"self loop",    selfLoop   },
+        {"tail cycle",   tailCycle  },
+        {"missing",      missing    },
         {"missing root", missingRoot},
-        {"chain", chain},
-        {"mermaid", mermaid},
-        {"load errors", loadErrors},
+        {"chain",        chain      },
+        {"mermaid",      mermaid    },
+        {"load errors",  loadErrors },
     };
 
     for (const auto& [name, test] : tests)
