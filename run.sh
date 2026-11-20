@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cmake -S . -B build -G Ninja && cmake --build build && ./build/PackageMan "$@"
+cmake -S . -B build -G Ninja && cmake --build build && (cd build && ./PackageMan "$@")
