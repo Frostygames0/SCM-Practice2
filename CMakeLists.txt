@@ -15,6 +15,7 @@ FetchContent_Declare(reproc
     GIT_REPOSITORY https://github.com/daandemeyer/reproc.git
     GIT_TAG 14.2.8
     SYSTEM
+    FIND_PACKAGE_ARGS NAMES reproc
 )
 FetchContent_MakeAvailable(reproc)
 
