@@ -1,11 +1,12 @@
 #include "archive.hpp"
 
-#include <archive.h>
-#include <archive_entry.h>
 #include <expected>
 #include <format>
 #include <memory>
 #include <string_view>
+
+#include <archive.h>
+#include <archive_entry.h>
 
 namespace PackageMan::Archive
 {
