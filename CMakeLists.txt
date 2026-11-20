@@ -19,6 +19,14 @@ FetchContent_Declare(reproc
 )
 FetchContent_MakeAvailable(reproc)
 
+set(CLI11_PRECOMPILED ON CACHE BOOL "" FORCE)
+FetchContent_Declare(cli11
+    GIT_REPOSITORY https://github.com/cliutils/cli11.git
+    GIT_TAG v2.7.2
+    SYSTEM
+)
+FetchContent_MakeAvailable(cli11)
+
 set(PACKAGEMAN_COMPILE_OPTIONS
     # General
     $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX /permissive->
@@ -47,9 +55,8 @@ add_library(PackageManCore STATIC
 )
 target_include_directories(PackageManCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
-target_link_libraries(PackageManCore PUBLIC CURL::libcurl LibArchive::LibArchive reproc++)
+target_link_libraries(PackageManCore PUBLIC CURL::libcurl LibArchive::LibArchive reproc++ CLI11::CLI11)
 target_compile_options(PackageManCore PRIVATE ${PACKAGEMAN_COMPILE_OPTIONS})
 
 add_executable(PackageMan src/main.cpp)
