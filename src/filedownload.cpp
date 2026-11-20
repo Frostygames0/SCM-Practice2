@@ -51,8 +51,16 @@ std::expected<std::vector<std::byte>, std::string> downloadFrom(const std::strin
             curl,
             CURLOPT_XFERINFOFUNCTION,
             +[](void* userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t, curl_off_t) -> int {
-                (*static_cast<const ProgressCallback*>(userp))(static_cast<std::uint64_t>(dlnow),
-                                                               static_cast<std::uint64_t>(dltotal));
+                try
+                {
+                    (*static_cast<const ProgressCallback*>(userp))(static_cast<std::uint64_t>(dlnow),
+                                                             static_cast<std::uint64_t>(dltotal));
+                }
+                catch (...)
+                {
+                    return 1;
+                }
+
                 return 0;
             });
         curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &onProgress);
