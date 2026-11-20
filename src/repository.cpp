@@ -106,7 +106,7 @@ std::expected<std::unique_ptr<Repository>, std::string> makeRepository(const Con
         return std::unexpected(bytes.error());
     }
 
-    auto text = Archive::unpackFileFromMem(*bytes, "APKINDEX");
+    auto text = Archive::unpackTarGZFromMem(*bytes, "APKINDEX");
     if (!text)
     {
         return std::unexpected(text.error());

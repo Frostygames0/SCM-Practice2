@@ -10,8 +10,8 @@
 
 namespace PackageMan::Archive
 {
-std::expected<std::string, std::string> unpackFileFromMem(std::span<const std::byte> mem,
-                                                          std::string_view fileName)
+std::expected<std::string, std::string> unpackTarGZFromMem(std::span<const std::byte> mem,
+                                                           std::string_view fileName)
 {
     std::unique_ptr<archive, decltype(&archive_read_free)> handle(archive_read_new(),
                                                                   archive_read_free);
